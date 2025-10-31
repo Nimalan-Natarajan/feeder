@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Settings, Moon, Sun, Monitor } from 'lucide-react';
+import { storageService } from '../services/storage';
+import { Settings, Moon, Sun, Monitor, Download, Upload, RotateCcw } from 'lucide-react';
 
 interface AppSettings {
   theme: 'light' | 'dark' | 'auto';
@@ -39,34 +40,118 @@ export function SettingsPanel() {
     }
   };
 
+  const handleResetData = () => {
+    const feeds = storageService.getFeeds();
+    const bookmarks = storageService.getBookmarks();
+    const categories = storageService.getCategories();
+    
+    const confirmMessage = `Are you sure you want to reset all data?\n\nThis will permanently delete:\n• ${feeds.length} RSS feeds\n• ${bookmarks.length} bookmarked articles\n• ${categories.length} categories\n• App settings\n\nThis action cannot be undone.\n\nTip: Use "Export Data" first to create a backup!`;
+    
+    if (confirm(confirmMessage)) {
+      // Clear all data using storage service
+      storageService.resetAllData();
+      localStorage.removeItem('app-settings');
+      
+      // Reset settings to default
+      setSettings(DEFAULT_SETTINGS);
+      applyTheme(DEFAULT_SETTINGS.theme);
+      
+      // Show success message and reload
+      alert('All data has been successfully reset!');
+      window.location.reload();
+    }
+  };
+
+  const handleExportData = () => {
+    try {
+      const dataJson = storageService.exportData();
+      const blob = new Blob([dataJson], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rss-feeder-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Failed to export data. Please try again.');
+    }
+  };
+
+  const handleImportData = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const content = e.target?.result as string;
+            const success = storageService.importData(content);
+            if (success) {
+              alert('Data imported successfully! The page will reload to apply changes.');
+              window.location.reload();
+            } else {
+              alert('Failed to import data. Please check the file format.');
+            }
+          } catch (error) {
+            alert('Failed to read the file. Please try again.');
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
   const applyTheme = (theme: string) => {
     const root = document.documentElement;
+    
+    // Remove any existing theme
+    root.removeAttribute('data-theme');
+    
     if (theme === 'dark') {
-      root.classList.add('dark');
+      root.setAttribute('data-theme', 'dark');
     } else if (theme === 'light') {
-      root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
     } else {
       // Auto theme - use system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (prefersDark) {
-        root.classList.add('dark');
+        root.setAttribute('data-theme', 'dark');
       } else {
-        root.classList.remove('dark');
+        root.setAttribute('data-theme', 'light');
       }
     }
   };
 
   useEffect(() => {
     applyTheme(settings.theme);
-  }, []);
+    
+    // Listen for system theme changes when in auto mode
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = () => {
+      if (settings.theme === 'auto') {
+        applyTheme('auto');
+      }
+    };
+    
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    };
+  }, [settings.theme]);
 
   if (!isOpen) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="btn-secondary"
+        className="settings-fab"
         title="Settings"
-        style={{ position: 'fixed', bottom: '20px', right: '20px', borderRadius: '50%', width: '56px', height: '56px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
       >
         <Settings size={20} />
       </button>
@@ -74,16 +159,16 @@ export function SettingsPanel() {
   }
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'white', borderRadius: '12px', padding: '24px', maxWidth: '400px', width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ margin: 0 }}>Settings</h2>
-          <button onClick={() => setIsOpen(false)} className="btn-secondary">×</button>
+    <div className="settings-overlay">
+      <div className="settings-modal">
+        <div className="settings-header">
+          <h2>Settings</h2>
+          <button onClick={() => setIsOpen(false)} className="close-btn">×</button>
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Theme</label>
-          <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="setting-group">
+          <label className="setting-label">Theme</label>
+          <div className="theme-buttons">
             {[
               { value: 'light', label: 'Light', icon: Sun },
               { value: 'dark', label: 'Dark', icon: Moon },
@@ -92,8 +177,7 @@ export function SettingsPanel() {
               <button
                 key={value}
                 onClick={() => updateSettings({ theme: value as any })}
-                className={`btn-secondary ${settings.theme === value ? 'active' : ''}`}
-                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}
+                className={`theme-btn ${settings.theme === value ? 'active' : ''}`}
               >
                 <Icon size={16} />
                 {label}
@@ -138,6 +222,58 @@ export function SettingsPanel() {
             <span>10</span>
             <span>50</span>
           </div>
+        </div>
+
+        <div className="setting-group">
+          <label className="setting-label">Data Management</label>
+          
+          <div className="data-stats">
+            <div className="stat-item">
+              <span className="stat-value">{storageService.getFeeds().length}</span>
+              <span className="stat-label">RSS Feeds</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">{storageService.getBookmarks().length}</span>
+              <span className="stat-label">Bookmarks</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">{storageService.getCategories().length}</span>
+              <span className="stat-label">Categories</span>
+            </div>
+          </div>
+          
+          <div className="data-management-buttons">
+            <button
+              onClick={handleExportData}
+              className="data-btn export-btn"
+              title="Export all your data as a backup file"
+            >
+              <Download size={16} />
+              Export Data
+            </button>
+            
+            <button
+              onClick={handleImportData}
+              className="data-btn import-btn"
+              title="Import data from a backup file"
+            >
+              <Upload size={16} />
+              Import Data
+            </button>
+          </div>
+          
+          <button
+            onClick={handleResetData}
+            className="reset-btn"
+            title="Clear all feeds, bookmarks, and categories"
+          >
+            <RotateCcw size={16} />
+            Reset All Data
+          </button>
+          
+          <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: '8px 0 0 0' }}>
+            Export creates a backup file. Import restores from backup. Reset permanently deletes everything.
+          </p>
         </div>
 
         <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px', fontSize: '14px', color: '#64748b' }}>

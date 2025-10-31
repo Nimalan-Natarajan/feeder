@@ -5,19 +5,34 @@ import { AddFeedForm } from './components/AddFeedForm';
 import { FeedView } from './components/FeedView';
 import { BookmarksView } from './components/BookmarksView';
 import { SettingsPanel } from './components/SettingsPanel';
-import { Rss, Bookmark, Plus } from 'lucide-react';
+import { SearchView } from './components/SearchView';
+import { Rss, Bookmark, Plus, ChevronUp, Search } from 'lucide-react';
 
-type TabType = 'feeds' | 'bookmarks' | 'add-feed';
+type TabType = 'feeds' | 'bookmarks' | 'add-feed' | 'search';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('feeds');
   const [feeds, setFeeds] = useState<RSSFeed[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkedArticle[]>([]);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
     setFeeds(storageService.getFeeds());
     setBookmarks(storageService.getBookmarks());
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleFeedAdded = () => {
     setFeeds(storageService.getFeeds());
@@ -42,6 +57,14 @@ function App() {
         return (
           <BookmarksView
             bookmarks={bookmarks}
+            onBookmarkChange={handleBookmarkChange}
+          />
+        );
+
+      case 'search':
+        return (
+          <SearchView
+            feeds={feeds}
             onBookmarkChange={handleBookmarkChange}
           />
         );
@@ -99,6 +122,13 @@ function App() {
                 Feeds ({feeds.length})
               </button>
               <button
+                className={`tab-button ${activeTab === 'search' ? 'active' : ''}`}
+                onClick={() => setActiveTab('search')}
+              >
+                <Search size={16} />
+                Search
+              </button>
+              <button
                 className={`tab-button ${activeTab === 'bookmarks' ? 'active' : ''}`}
                 onClick={() => setActiveTab('bookmarks')}
               >
@@ -124,6 +154,16 @@ function App() {
       </main>
 
       <SettingsPanel />
+      
+      {showBackToTop && (
+        <button 
+          className="back-to-top"
+          onClick={scrollToTop}
+          title="Back to top"
+        >
+          <ChevronUp size={20} />
+        </button>
+      )}
     </div>
   );
 }

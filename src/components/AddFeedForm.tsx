@@ -14,6 +14,8 @@ export function AddFeedForm({ onFeedAdded }: AddFeedFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -24,6 +26,24 @@ export function AddFeedForm({ onFeedAdded }: AddFeedFormProps) {
 
     if (!rssService.validateRSSUrl(url)) {
       setError('Please enter a valid URL');
+      return;
+    }
+
+    // Check for duplicate feed names
+    const existingFeeds = storageService.getFeeds();
+    const duplicateName = existingFeeds.find(feed => 
+      feed.name.toLowerCase() === name.trim().toLowerCase()
+    );
+    
+    if (duplicateName) {
+      setError(`A feed with the name "${name.trim()}" already exists. Please choose a different name.`);
+      return;
+    }
+
+    // Check for duplicate URLs
+    const duplicateUrl = existingFeeds.find(feed => feed.url === url.trim());
+    if (duplicateUrl) {
+      setError(`This RSS feed is already added as "${duplicateUrl.name}". Please add a different feed.`);
       return;
     }
 

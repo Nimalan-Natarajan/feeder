@@ -3,6 +3,14 @@ export interface RSSFeed {
   name: string;
   url: string;
   addedAt: Date;
+  category?: string;
+}
+
+export interface FeedCategory {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: Date;
 }
 
 export interface Article {
