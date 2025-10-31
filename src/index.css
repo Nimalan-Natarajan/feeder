@@ -591,6 +591,17 @@ body:not([data-theme="dark"]) {
   .article-item {
     padding: 12px 16px;
   }
+
+  /* Smaller mobile screens - keep the fixed positioning */
+
+  .share-option {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .article-header {
+    gap: 8px;
+  }
 }
 
 /* PWA and Mobile Optimizations */
@@ -989,17 +1000,35 @@ input:focus-visible {
 }
 
 .share-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
+  position: fixed;
+  top: auto;
+  right: auto;
+  left: 50%;
+  bottom: 80px;
+  transform: translateX(-50%);
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   box-shadow: 0 8px 24px var(--shadow-color);
   padding: 8px;
   min-width: 160px;
-  z-index: 1000;
+  z-index: 9999;
   backdrop-filter: blur(20px);
+  /* Prevent menu from going off-screen */
+  max-width: calc(100vw - 32px);
+  white-space: nowrap;
+}
+
+@media (min-width: 769px) {
+  .share-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    z-index: 1000;
+  }
 }
 
 .share-option {
@@ -1185,6 +1214,16 @@ input:focus-visible {
 
   .search-input {
     font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  /* Ensure proper spacing on mobile */
+  .article-header {
+    gap: 12px;
+  }
+
+  .article-actions {
+    flex-shrink: 0;
+    min-width: fit-content;
   }
 }
 
