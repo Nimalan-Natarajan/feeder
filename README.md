@@ -1,4 +1,4 @@
-# RSS Feeder
+# Feeder
 
 A modern, responsive Progressive Web App (PWA) for reading RSS feeds. Works seamlessly on both desktop and mobile devices.
 
