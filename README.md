@@ -3,6 +3,8 @@
 
 A beautiful, modern Progressive Web App (PWA) for reading RSS feeds with an Apple-inspired glassmorphism design. Experience news reading like never before with intelligent categorization and stunning visual effects.
 
+🚀 **[Try Live Demo](https://feeder-dev.netlify.app/)** | 📱 **Mobile Optimized** | 🌓 **Dark Mode Ready**
+
 ## ✨ Features
 
 ### 🎨 **Design & Experience**
@@ -186,4 +188,4 @@ MIT License - feel free to use, modify, and distribute!
 
 ---
 
-**Made with ❤️ by Nimalan** | [GitHub](https://github.com/Nimalan-Natarajan) | [Live Demo](https://your-feeder-app.netlify.app)
+**Made with ❤️ by Nimalan** | [GitHub](https://github.com/Nimalan-Natarajan) | [Live Demo](https://feeder-dev.netlify.app/)
