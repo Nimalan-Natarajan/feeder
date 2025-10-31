@@ -60,25 +60,7 @@ export function AddFeedForm({ onFeedAdded }: AddFeedFormProps) {
     return languages.sort();
   };
 
-  const handleFeedToggle = (feedUrl: string) => {
-    const newSelected = new Set(selectedFeeds);
-    if (newSelected.has(feedUrl)) {
-      newSelected.delete(feedUrl);
-    } else {
-      newSelected.add(feedUrl);
-    }
-    setSelectedFeeds(newSelected);
-  };
 
-  const selectAllFeeds = () => {
-    const filteredFeeds = getFilteredFeeds();
-    const allUrls = filteredFeeds.map(feed => feed.url);
-    setSelectedFeeds(new Set(allUrls));
-  };
-
-  const clearAllFeeds = () => {
-    setSelectedFeeds(new Set());
-  };
 
   const addSelectedFeeds = async () => {
     if (selectedFeeds.size === 0) return;
