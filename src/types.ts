@@ -4,6 +4,7 @@ export interface RSSFeed {
   url: string;
   addedAt: Date;
   category?: string;
+  language?: string;
 }
 
 export interface FeedCategory {

@@ -24,8 +24,15 @@ export const storageService = {
 
   addFeed(feed: RSSFeed): void {
     const feeds = this.getFeeds();
-    feeds.push(feed);
-    this.saveFeeds(feeds);
+    // Check if feed with same URL already exists
+    if (!feeds.find(f => f.url === feed.url)) {
+      feeds.push(feed);
+      this.saveFeeds(feeds);
+    }
+  },
+
+  feedExists(url: string): boolean {
+    return this.getFeeds().some(feed => feed.url === url);
   },
 
   removeFeed(feedId: string): void {

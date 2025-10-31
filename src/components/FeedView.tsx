@@ -14,7 +14,7 @@ export function FeedView({ feed, onRemoveFeed, onBookmarkChange }: FeedViewProps
   const { articles, loading, error, feedInfo, refetch } = useRSSFeed(feed);
   const [showAll, setShowAll] = useState(false);
   
-  const ARTICLES_PREVIEW_COUNT = 3;
+  const ARTICLES_PREVIEW_COUNT = 5;
   const displayedArticles = showAll ? articles : articles.slice(0, ARTICLES_PREVIEW_COUNT);
   const hasMoreArticles = articles.length > ARTICLES_PREVIEW_COUNT;
 
@@ -57,23 +57,8 @@ export function FeedView({ feed, onRemoveFeed, onBookmarkChange }: FeedViewProps
     <div className="feed-container">
       <div className="feed-header-card">
         <div className="feed-info">
-          <div className="feed-title-section">
-            <h2 className="feed-title">{feed.name}</h2>
-            <span className="feed-source">{new URL(feed.url).hostname}</span>
-          </div>
-          {feedInfo?.title && feedInfo.title !== feed.name && (
-            <div className="feed-original-title">
-              <span className="original-title-label">Original:</span>
-              <span className="original-title">{feedInfo.title}</span>
-            </div>
-          )}
-          {feedInfo?.description && (
-            <p className="feed-description">{feedInfo.description}</p>
-          )}
-          <div className="feed-stats">
-            <span className="article-count">{articles.length} articles</span>
-            <span className="last-updated">Last updated: {new Date().toLocaleDateString()}</span>
-          </div>
+          <h2 className="feed-title">{feed.name}</h2>
+          <span className="feed-source">{new URL(feed.url).hostname}</span>
         </div>
         <div className="feed-actions">
           {feedInfo?.link && (
